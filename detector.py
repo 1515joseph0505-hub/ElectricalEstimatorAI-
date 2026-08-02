@@ -1,24 +1,26 @@
-from collections import Counter
-from symbol_detector import pdf_to_images
-from matcher import detect_symbols
+import fitz
+from page_classifier import classify_page
 
 def analyze_pdf(pdf_bytes):
 
-    pages = pdf_to_images(pdf_bytes)
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-    counts = Counter()
+    pages = []
 
-    for img in pages:
+    for page_number, page in enumerate(doc):
 
-        symbols = detect_symbols(img)
+        text = page.get_text()
 
-        for s in symbols:
-            counts[s["type"]] += 1
+        page_type = classify_page(text)
+
+        pages.append({
+            "page": page_number + 1,
+            "type": page_type
+        })
+
+    doc.close()
 
     return {
-        "pages": len(pages),
-        "lighting_points": counts["light"],
-        "sockets": counts["socket"],
-        "switches": counts["switch"],
-        "distribution_boards": counts["db"]
+        "total_pages": len(pages),
+        "pages": pages
     }
