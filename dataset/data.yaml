@@ -1,0 +1,16 @@
+train: images/train
+val: images/val
+
+nc: 10
+
+names:
+  - light
+  - socket
+  - switch
+  - db
+  - smoke_detector
+  - cctv
+  - data_outlet
+  - tv_outlet
+  - emergency_light
+  - ac_point
