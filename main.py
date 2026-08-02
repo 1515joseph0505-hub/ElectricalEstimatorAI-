@@ -4,20 +4,17 @@ from detector import analyze_pdf
 
 app = FastAPI(title="Electrical Estimator AI")
 
-
 @app.get("/")
 def home():
     return {
         "status": "running",
-        "version": "1.1"
+        "version": "2.0"
     }
-
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
-    contents = await file.read()
+    pdf = await file.read()
 
-    result = analyze_pdf(contents)
+    result = analyze_pdf(pdf)
 
     return JSONResponse(content=result)
-       
