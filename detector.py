@@ -1,19 +1,37 @@
-from core.pdf_reader import read_pdf
-from core.page_classifier import classify
+import fitz
 
 def analyze_pdf(pdf_bytes):
 
-    pages = read_pdf(pdf_bytes)
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-    analysis = []
-
-    for page in pages:
-
-        analysis.append({
-            "page": page["number"],
-            "type": classify(page["text"])
-        })
-
-    return {
-        "pages": analysis
+    result = {
+        "total_pages": len(doc),
+        "lighting_pages": [],
+        "socket_pages": [],
+        "elv_pages": [],
+        "db_pages": [],
+        "schematic_pages": []
     }
+
+    for i, page in enumerate(doc):
+
+        text = page.get_text().upper()
+
+        if "LIGHTING LAYOUT" in text:
+            result["lighting_pages"].append(i + 1)
+
+        if "SOCKETS LAYOUT" in text:
+            result["socket_pages"].append(i + 1)
+
+        if "ELV LAYOUT" in text:
+            result["elv_pages"].append(i + 1)
+
+        if "DISTRIBUTION BOARD SCHEDULE" in text:
+            result["db_pages"].append(i + 1)
+
+        if "ELECTRICAL MAIN SCHEMATIC" in text:
+            result["schematic_pages"].append(i + 1)
+
+    doc.close()
+
+    return result
