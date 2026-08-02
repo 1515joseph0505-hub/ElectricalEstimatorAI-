@@ -1,33 +1,43 @@
 import cv2
+import os
+
+TEMPLATES = {
+    "light": cv2.imread("templates/light.png", 0),
+    "socket": cv2.imread("templates/socket.png", 0),
+    "switch": cv2.imread("templates/switch.png", 0),
+    "db": cv2.imread("templates/db.png", 0),
+}
 
 def detect_symbols(image):
+
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-    _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
+    results = []
 
-    contours, _ = cv2.findContours(
-        thresh,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
+    for name, template in TEMPLATES.items():
 
-    symbols = []
-
-    for c in contours:
-
-        area = cv2.contourArea(c)
-
-        if area < 20:
+        if template is None:
             continue
 
-        x, y, w, h = cv2.boundingRect(c)
+        w, h = template.shape[::-1]
 
-        symbols.append({
-            "x": x,
-            "y": y,
-            "w": w,
-            "h": h,
-            "area": area
-        })
+        match = cv2.matchTemplate(
+            gray,
+            template,
+            cv2.TM_CCOEFF_NORMED
+        )
 
-    return symbols
+        threshold = 0.75
+
+        locations = zip(*((match >= threshold).nonzero())[::-1])
+
+        for pt in locations:
+            results.append({
+                "type": name,
+                "x": int(pt[0]),
+                "y": int(pt[1]),
+                "w": int(w),
+                "h": int(h)
+            })
+
+    return results
